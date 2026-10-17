@@ -441,6 +441,7 @@ jobs:
       if: true
       working-directory: ${{ github.workspace }}/kernel
       run: |
+       touch common/abi_symbollist.raw
         # ABI compare bypass per kernel/android version
         # Edit each block as needed per version
         if [[ "$ANDROID_VERSION" == "android12" && "$KERNEL_VERSION" == "5.10" ]]; then
