@@ -177,7 +177,7 @@ jobs:
         cd kernel/common || cd common
         git remote add stable https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux.git || true
         git fetch stable v6.1.190
-        git merge --no-edit FETCH_HEAD
+        git merge --no-edit --allow-unrelated-histories FETCH_HEAD
     - name: Spoof /proc/config.gz With Stock Config
       uses: ./.github/actions/stock-config
       with:
