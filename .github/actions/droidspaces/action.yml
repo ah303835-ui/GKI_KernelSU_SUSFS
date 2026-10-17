@@ -62,7 +62,7 @@ runs:
           grep -q 'ANDROID_KABI_USE(6, struct sysv_sem sysvsem)' include/linux/sched.h || perl -0pi -e 's/\tANDROID_KABI_RESERVE\(6\);\n\tANDROID_KABI_RESERVE\(7\);\n\tANDROID_KABI_RESERVE\(8\);\n/#ifdef CONFIG_SYSVIPC\n\tANDROID_KABI_USE(6, struct sysv_sem sysvsem);\n\t_ANDROID_KABI_REPLACE(ANDROID_KABI_RESERVE(7); ANDROID_KABI_RESERVE(8), struct sysv_shm sysvshm);\n#else\n\tANDROID_KABI_RESERVE(6);\n\tANDROID_KABI_RESERVE(7);\n\tANDROID_KABI_RESERVE(8);\n#endif\n/' include/linux/sched.h || true
           grep -q 'ANDROID_KABI_USE(6, struct sysv_sem sysvsem)' include/linux/sched.h && echo "sched.h hunk OK" || echo "::warning::sched.h hunk NOT applied"
           sed -i '1i static inline void hw_suppress_tag_checks_start(void) {}\nstatic inline void hw_suppress_tag_checks_stop(void) {}' mm/kasan/report.c || true
-          echo "static inline void shm_init_task(struct task_struct *p) {}" >> include/linux/shm.h || true
+          grep -q 'shm_init_task' include/linux/shm.h || echo 'static inline void shm_init_task(struct task_struct *p) {}' >> include/linux/shm.h || true
           find . \( -name 'Makefile*' -o -name 'Kbuild*' \) -type f -exec sed -i -E 's/(^|[[:space:]])-Werror(=[A-Za-z0-9_-]+)?([[:space:]]|$)/\1\3/g' {} + || true
           echo 'KBUILD_CFLAGS += -Wno-error -Wno-error=array-bounds -Wno-error=stringop-overflow' >> Makefile
           echo "Remaining -Werror:"
