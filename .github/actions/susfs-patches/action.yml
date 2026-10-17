@@ -88,15 +88,15 @@ runs:
       if: inputs.version == 'android14-6.1'
       working-directory: ${{ github.workspace }}/kernel/common
       run: |
-        if [ "${{ inputs.sublevel }}" -le "25" ]; then
+        if [ "${{ inputs.sublevel }}" -le "200" ]; then
           echo "Applying base.c Android 14 6.1 Fake Patch"
           sed -i '/^#include <trace\/events\/oom.h>$/a #include <trace/hooks/sched.h>' fs/proc/base.c
         fi
-        if [ "${{ inputs.sublevel }}" -le "141" ]; then
+        if [ "${{ inputs.sublevel }}" -le "197" ]; then
           echo "Applying base.c Android 14 6.1 Fake Patch"
           sed -i '/^#include <linux\/cpufreq_times.h>$/a #include <linux/dma-buf.h>' fs/proc/base.c
         fi
-        if [ "${{ inputs.sublevel }}" -ge "157" ]; then
+        if [ "${{ inputs.sublevel }}" -ge "200" ]; then
           echo "Applying namespace.c Android 14 6.1 Fake Patch"
           sed -i '/^#include <trace\/hooks\/blk.h>$/d' fs/namespace.c
           echo "Applying super.c Android 14 6.1 Fake Patch"
