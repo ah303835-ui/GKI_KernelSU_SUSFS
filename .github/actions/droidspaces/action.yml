@@ -61,6 +61,7 @@ runs:
           patch -p1 --fuzz=3 < patch.patch || true
           sed -i '1i static inline void hw_suppress_tag_checks_start(void) {}\nstatic inline void hw_suppress_tag_checks_stop(void) {}' mm/kasan/report.c || true
           echo "static inline void shm_init_task(struct task_struct *p) {}" >> include/linux/shm.h || true
+          export KCFLAGS="-Wno-error=array-bounds -Wno-error=stringop-overflow -Wno-error"
         elif [ "${{ inputs.version }}" == "android14-5.15" ]; then
           cp ${{ github.workspace }}/Droidspaces-OSS/Documentation/resources/kernel-patches/GKI/001.GKI-below-6.12-fix_sysvipc_kabi_6_7_8.patch .
           patch -p1 < 001.GKI-below-6.12-fix_sysvipc_kabi_6_7_8.patch
