@@ -45,7 +45,7 @@ runs:
           if [ "$depth" != "0" ]; then
             depth_flag="--depth=${depth}"
           fi
-          repo init -u https://android.googlesource.com/kernel/manifest -b common-${FORMATTED_BRANCH} ${depth_flag} || { echo "ERROR: repo init failed" >&2; return 1; }
+          repo init -u https://android.googlesource.com/kernel/manifest -b common-${FORMATTED_BRANCH} ${depth_flag} || repo init -u https://android.googlesource.com/kernel/manifest -b common-${ANDROID_PART}-${KERNEL_PART} ${depth_flag}
           REMOTE_BRANCH=$(git ls-remote https://android.googlesource.com/kernel/common ${FORMATTED_BRANCH}) || { echo "ERROR: git ls-remote failed" >&2; return 1; }
           DEFAULT_MANIFEST_PATH=.repo/manifests/default.xml
           DEPRECATED=false
