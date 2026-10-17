@@ -438,7 +438,7 @@ jobs:
         kernel_version: ${{ inputs.kernel_version }}
 
     - name: Apply ABI Compare Bypass
-      if: false
+      if: true
       working-directory: ${{ github.workspace }}/kernel
       run: |
         # ABI compare bypass per kernel/android version
