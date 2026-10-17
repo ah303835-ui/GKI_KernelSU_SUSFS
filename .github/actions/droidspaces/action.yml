@@ -57,7 +57,7 @@ runs:
           cp ${{ github.workspace }}/Droidspaces-OSS/Documentation/resources/kernel-patches/GKI/001.GKI-below-6.12-fix_sysvipc_kabi_6_7_8.patch .
           patch -p1 < 001.GKI-below-6.12-fix_sysvipc_kabi_6_7_8.patch
         elif [ "${{ inputs.version }}" == "android14-6.1" ]; then
-          cp ${{ github.workspace }}/Droidspaces-OSS/Documentation/resources/kernel-patches/GKI/001.GKI-below-6.12-fix_sysvipc_kabi_6_7_8.patch .
+          cp ${{ github.workspace }}/Droidspaces-OSS/Documentation/resources/kernel-patches/GKI/below-kernel-6.12/001.GKI-below-6.12-fix_sysvipc_kabi_6_7_8.patch .
           patch -p1 --fuzz=3 < 001.GKI-below-6.12-fix_sysvipc_kabi_6_7_8.patch || true
           sed -i '/.sysvshm/d' include/linux/shm.h kernel/fork.c || true
           sed -i 's/shm_init_task(p);/\/\* shm_init_task(p); \*\//g' kernel/fork.c || true
