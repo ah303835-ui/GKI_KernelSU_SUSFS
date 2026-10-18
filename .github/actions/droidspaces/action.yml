@@ -61,42 +61,7 @@ runs:
           patch -p1 --fuzz=3 < patch.patch || true
           grep -q 'ANDROID_KABI_USE(6, struct sysv_sem sysvsem)' include/linux/sched.h || perl -0pi -e 's/\tANDROID_KABI_RESERVE\(6\);\n\tANDROID_KABI_RESERVE\(7\);\n\tANDROID_KABI_RESERVE\(8\);\n/#ifdef CONFIG_SYSVIPC\n\tANDROID_KABI_USE(6, struct sysv_sem sysvsem);\n\t_ANDROID_KABI_REPLACE(ANDROID_KABI_RESERVE(7); ANDROID_KABI_RESERVE(8), struct sysv_shm sysvshm);\n#else\n\tANDROID_KABI_RESERVE(6);\n\tANDROID_KABI_RESERVE(7);\n\tANDROID_KABI_RESERVE(8);\n#endif\n/' include/linux/sched.h || true
           grep -q 'ANDROID_KABI_USE(6, struct sysv_sem sysvsem)' include/linux/sched.h && echo "sched.h hunk OK" || echo "::warning::sched.h hunk NOT applied"
-          python3 - <<'PYEOF' || true
-          import re, sys
-          p = 'include/linux/sched.h'
-          s = open(p).read()
-          a = s.find('struct task_struct {')
-          b = s.find('New fields for task_struct should be added above here')
-          if a < 0 or b < 0 or b < a:
-              print('::warning::task_struct markers not found')
-              sys.exit(0)
-          blk = s[a:b]
-          if 'struct sysv_sem sysvsem' in blk:
-              print('sched.h already patched')
-              sys.exit(0)
-          lines = blk.split('\n')
-          pat = re.compile(r'\s*ANDROID_KABI_RESERVE\((\d+)\);\s*')
-          idx = [i for i, l in enumerate(lines) if pat.fullmatch(l)]
-          print('free KABI slots:', [lines[i].strip() for i in idx])
-          pair = None
-          for k in range(len(idx) - 1, 0, -1):
-              if idx[k] - idx[k - 1] == 1:
-                  pair = (idx[k - 1], idx[k])
-                  break
-          rest = [i for i in idx if not pair or i not in pair]
-          if not pair or not rest:
-              print('::warning::not enough free KABI slots')
-              sys.exit(0)
-          one = rest[-1]
-          n = re.search(r'\((\d+)\)', lines[one]).group(1)
-          x = re.search(r'\((\d+)\)', lines[pair[0]]).group(1)
-          y = re.search(r'\((\d+)\)', lines[pair[1]]).group(1)
-          lines[one] = '\tANDROID_KABI_USE(%s, struct sysv_sem sysvsem);' % n
-          lines[pair[0]] = '\t_ANDROID_KABI_REPLACE(ANDROID_KABI_RESERVE(%s); ANDROID_KABI_RESERVE(%s), struct sysv_shm sysvshm);' % (x, y)
-          del lines[pair[1]]
-          open(p, 'w').write(s[:a] + '\n'.join(lines) + s[b:])
-          print('sched.h patched: sem slot', n, 'shm slots', x, y)
-          PYEOF
+                    echo 'aW1wb3J0IHJlLCBzeXMKcCA9ICdpbmNsdWRlL2xpbnV4L3NjaGVkLmgnCnMgPSBvcGVuKHApLnJlYWQoKQphID0gcy5maW5kKCdzdHJ1Y3QgdGFza19zdHJ1Y3QgeycpCmIgPSBzLmZpbmQoJ05ldyBmaWVsZHMgZm9yIHRhc2tfc3RydWN0IHNob3VsZCBiZSBhZGRlZCBhYm92ZSBoZXJlJykKaWYgYSA8IDAgb3IgYiA8IDAgb3IgYiA8IGE6CiAgICBwcmludCgnOjp3YXJuaW5nOjp0YXNrX3N0cnVjdCBtYXJrZXJzIG5vdCBmb3VuZCcpCiAgICBzeXMuZXhpdCgwKQpibGsgPSBzW2E6Yl0KaWYgJ3N0cnVjdCBzeXN2X3NlbSBzeXN2c2VtJyBpbiBibGs6CiAgICBwcmludCgnc2NoZWQuaCBhbHJlYWR5IHBhdGNoZWQnKQogICAgc3lzLmV4aXQoMCkKbGluZXMgPSBibGsuc3BsaXQoJ1xuJykKcGF0ID0gcmUuY29tcGlsZShyJ1xzKkFORFJPSURfS0FCSV9SRVNFUlZFXCgoXGQrKVwpO1xzKicpCmlkeCA9IFtpIGZvciBpLCBsIGluIGVudW1lcmF0ZShsaW5lcykgaWYgcGF0LmZ1bGxtYXRjaChsKV0KcHJpbnQoJ2ZyZWUgS0FCSSBzbG90czonLCBbbGluZXNbaV0uc3RyaXAoKSBmb3IgaSBpbiBpZHhdKQpwYWlyID0gTm9uZQpmb3IgayBpbiByYW5nZShsZW4oaWR4KSAtIDEsIDAsIC0xKToKICAgIGlmIGlkeFtrXSAtIGlkeFtrIC0gMV0gPT0gMToKICAgICAgICBwYWlyID0gKGlkeFtrIC0gMV0sIGlkeFtrXSkKICAgICAgICBicmVhawpyZXN0ID0gW2kgZm9yIGkgaW4gaWR4IGlmIG5vdCBwYWlyIG9yIGkgbm90IGluIHBhaXJdCmlmIG5vdCBwYWlyIG9yIG5vdCByZXN0OgogICAgcHJpbnQoJzo6d2FybmluZzo6bm90IGVub3VnaCBmcmVlIEtBQkkgc2xvdHMnKQogICAgc3lzLmV4aXQoMCkKb25lID0gcmVzdFstMV0KbiA9IHJlLnNlYXJjaChyJ1woKFxkKylcKScsIGxpbmVzW29uZV0pLmdyb3VwKDEpCnggPSByZS5zZWFyY2gocidcKChcZCspXCknLCBsaW5lc1twYWlyWzBdXSkuZ3JvdXAoMSkKeSA9IHJlLnNlYXJjaChyJ1woKFxkKylcKScsIGxpbmVzW3BhaXJbMV1dKS5ncm91cCgxKQpsaW5lc1tvbmVdID0gJ1x0QU5EUk9JRF9LQUJJX1VTRSglcywgc3RydWN0IHN5c3Zfc2VtIHN5c3ZzZW0pOycgJSBuCmxpbmVzW3BhaXJbMF1dID0gJ1x0X0FORFJPSURfS0FCSV9SRVBMQUNFKEFORFJPSURfS0FCSV9SRVNFUlZFKCVzKTsgQU5EUk9JRF9LQUJJX1JFU0VSVkUoJXMpLCBzdHJ1Y3Qgc3lzdl9zaG0gc3lzdnNobSk7JyAlICh4LCB5KQpkZWwgbGluZXNbcGFpclsxXV0Kb3BlbihwLCAndycpLndyaXRlKHNbOmFdICsgJ1xuJy5qb2luKGxpbmVzKSArIHNbYjpdKQpwcmludCgnc2NoZWQuaCBwYXRjaGVkOiBzZW0gc2xvdCcsIG4sICdzaG0gc2xvdHMnLCB4LCB5KQo=' | base64 -d | python3 - || true
           grep -q 'struct sysv_sem sysvsem' include/linux/sched.h && echo "sched.h hunk OK" || echo "::warning::sched.h hunk NOT applied"
           sed -i '1i static inline void hw_suppress_tag_checks_start(void) {}\nstatic inline void hw_suppress_tag_checks_stop(void) {}' mm/kasan/report.c || true
           grep -q 'shm_init_task' include/linux/shm.h || echo 'static inline void shm_init_task(struct task_struct *p) {}' >> include/linux/shm.h || true
